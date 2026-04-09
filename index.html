@@ -22,11 +22,15 @@
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Banner de Ventana */
+        .window-banner { background: #fffbeb; border: 1.5px solid #fef3c7; padding: 15px; border-radius: 18px; margin-bottom: 20px; color: #92400e; font-size: 13px; }
+        
         .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .card-title { font-size: 12px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; color: var(--muted); }
         .profile-picker { display: flex; gap: 10px; margin-bottom: 20px; }
-        .profile-opt { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .profile-opt.active { border-color: var(--primary); background: #eef2ff; }
+        .profile-opt { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; font-weight: 700; }
+        .profile-opt.active { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+        
         .status-hero { padding: 20px; border-radius: 20px; background: linear-gradient(135deg, #312e81, #6366f1); color: #fff; text-align: center; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { font-size: 11px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px; }
@@ -35,17 +39,22 @@
         .btn { padding: 16px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; margin-top: 10px; }
         .btn-primary { background: var(--primary); color: #fff; }
         .btn-success { background: var(--success); color: #fff; }
-        #edit-modal { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
-        .modal-content { background:#fff; border-radius:var(--radius); padding:25px; width:100%; max-width:400px; }
-        .log-row { border-bottom: 1px solid var(--border); padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Estilos Bitácora */
+        .log-row { border-bottom: 1px solid var(--border); padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .date-header { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-top: 15px; }
+        .btn-mini { padding: 6px 10px; border-radius: 8px; border: none; font-size: 10px; font-weight: 700; cursor: pointer; }
+
+        /* Modal Edición */
+        #edit-modal { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
+        .modal-content { background:#fff; border-radius:var(--radius); padding:25px; width:100%; max-width:400px; box-shadow: var(--shadow); }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div style="font-weight: 800;">FamilyDream 🕊️</div>
-    <div id="reloj" style="font-size: 12px;"></div>
+    <div id="reloj" style="font-size: 12px; font-family: monospace;"></div>
 </div>
 
 <nav class="nav-tabs">
@@ -56,62 +65,53 @@
 
 <div class="container">
     <div id="view-registro" class="view active">
+        <div id="ventana-display" class="window-banner" style="display:none;">
+            💡 Próxima ventana de <b id="win-name"></b>: <b id="win-time">--:--</b>
+        </div>
+
         <div class="profile-picker">
-            <div class="profile-opt active" id="p-feli" onclick="setProfile('Feli')">👦 Feli</div>
-            <div class="profile-opt" id="p-bebe" onclick="setProfile('Bebé')">👶 Bebé</div>
+            <div class="profile-opt active" id="p-feli" onclick="setProfile('Feli', 330)">👦 Feli</div>
+            <div class="profile-opt" id="p-bebe" onclick="setProfile('Bebé', 60)">👶 Bebé</div>
         </div>
 
         <div class="card">
             <div id="panel-inicio">
-                <div class="card-title">✨ Nuevo Sueño</div>
                 <div class="form-group">
                     <label>Tipo</label>
                     <select id="reg_tipo"><option value="Siesta">Siesta 🌤️</option><option value="Nocturno">Noche 🌙</option></select>
                 </div>
-                <div class="form-group">
-                    <label>Fecha</label>
-                    <input type="date" id="reg_f_ini">
-                </div>
-                <div class="form-group">
-                    <label>Hora de Inicio</label>
-                    <div class="time-picker" id="tp_ini"></div>
-                </div>
-                <button onclick="registrarInicio()" class="btn btn-primary" id="btn-label-ini">Registrar Inicio</button>
+                <div class="form-group"><label>Fecha</label><input type="date" id="reg_f_ini"></div>
+                <div class="form-group"><label>Hora de Inicio</label><div class="time-picker" id="tp_ini"></div></div>
+                <button onclick="registrarInicio()" class="btn btn-primary" id="btn-label-ini">Iniciar Sueño</button>
             </div>
 
             <div id="panel-fin" style="display:none;">
-                <div class="status-hero"><div id="msg-activo"></div></div>
-                <div class="form-group">
-                    <label>Fecha Despertar</label>
-                    <input type="date" id="reg_f_fin">
-                </div>
-                <div class="form-group">
-                    <label>Hora Despertar</label>
-                    <div class="time-picker" id="tp_fin"></div>
-                </div>
-                <button onclick="registrarFin()" class="btn btn-success">¡Despertó!</button>
+                <div class="status-hero"><div id="msg-activo" style="font-size:18px; font-weight:700;"></div></div>
+                <div class="form-group"><label>Fecha Despertar</label><input type="date" id="reg_f_fin"></div>
+                <div class="form-group"><label>Hora Despertar</label><div class="time-picker" id="tp_fin"></div></div>
+                <button onclick="registrarFin()" class="btn btn-success">¡Ya despertó!</button>
             </div>
         </div>
     </div>
 
     <div id="view-historial" class="view">
-        <div class="card"><div class="card-title">📅 Historial</div><div id="listaHistorial"></div></div>
+        <div class="card"><div id="listaHistorial"></div></div>
     </div>
 
     <div id="view-analitica" class="view">
-        <div class="card"><div class="card-title">📈 Últimos 7 días</div><div style="height:300px;"><canvas id="graficoSueno"></canvas></div></div>
+        <div class="card"><div style="height:300px;"><canvas id="graficoSueno"></canvas></div></div>
     </div>
 </div>
 
 <div id="edit-modal">
     <div class="modal-content">
-        <h3>Editar Registro</h3><br>
+        <h3 style="margin-bottom:15px;">Editar Registro</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>Tipo</label><select id="edit-tipo"><option value="Siesta">Siesta</option><option value="Nocturno">Nocturno</option></select></div>
-        <div class="form-group"><label>Hora Inicio</label><input type="time" id="edit-h-ini"></div>
-        <div class="form-group"><label>Hora Fin</label><input type="time" id="edit-h-fin"></div>
-        <button onclick="guardarEdicion()" class="btn btn-primary">Guardar</button>
-        <button onclick="document.getElementById('edit-modal').style.display='none'" class="btn">Cancelar</button>
+        <div class="form-group"><label>Tipo</label><select id="edit-tipo"><option value="Siesta">Siesta</option><option value="Nocturno">Noche</option></select></div>
+        <div class="form-group"><label>Hora Inicio (24h)</label><input type="time" id="edit-h-ini"></div>
+        <div class="form-group"><label>Hora Fin (24h)</label><input type="time" id="edit-h-fin"></div>
+        <button onclick="guardarEdicion()" class="btn btn-primary">Guardar Cambios</button>
+        <button onclick="document.getElementById('edit-modal').style.display='none'" class="btn" style="background:#eee;">Cancelar</button>
     </div>
 </div>
 
@@ -135,6 +135,7 @@
     let sesiones = [];
     let activa = null;
     let currentChild = "Feli";
+    let currentWindow = 330;
     let chartInstance = null;
 
     const crearTP = (id) => {
@@ -151,8 +152,8 @@
         return `${h.toString().padStart(2,'0')}:${m}`;
     };
 
-    window.setProfile = (name) => {
-        currentChild = name;
+    window.setProfile = (name, mins) => {
+        currentChild = name; currentWindow = mins;
         document.querySelectorAll('.profile-opt').forEach(el => el.classList.remove('active'));
         document.getElementById(name === 'Feli' ? 'p-feli' : 'p-bebe').classList.add('active');
         actualizarUI();
@@ -171,15 +172,27 @@
     function actualizarUI() {
         const pIni = document.getElementById('panel-inicio');
         const pFin = document.getElementById('panel-fin');
-        document.getElementById('btn-label-ini').innerText = `Registrar inicio de ${currentChild}`;
+        const vDisp = document.getElementById('ventana-display');
         
+        document.getElementById('btn-label-ini').innerText = `${currentChild} empezó a dormir`;
+
         if(activa) {
-            pIni.style.display = "none"; pFin.style.display = "block";
+            pIni.style.display = "none"; pFin.style.display = "block"; vDisp.style.display = "none";
             document.getElementById('msg-activo').innerText = `${activa.nombre} está durmiendo`;
             document.getElementById('reg_f_fin').value = new Date().toISOString().split('T')[0];
         } else {
             pIni.style.display = "block"; pFin.style.display = "none";
             document.getElementById('reg_f_ini').value = new Date().toISOString().split('T')[0];
+            
+            const ultimo = sesiones.find(s => s.nombre === currentChild && s.estado === 'cerrado');
+            if(ultimo) {
+                vDisp.style.display = "block";
+                document.getElementById('win-name').innerText = currentChild;
+                let [h, m] = ultimo.h_fin.split(':');
+                let d = new Date(); d.setHours(h); d.setMinutes(m);
+                d.setMinutes(d.getMinutes() + currentWindow);
+                document.getElementById('win-time').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            }
         }
         renderHistorial();
     }
@@ -202,18 +215,44 @@
     };
 
     function renderHistorial() {
-        const div = document.getElementById('listaHistorial');
-        div.innerHTML = "";
+        const div = document.getElementById('listaHistorial'); div.innerHTML = "";
         let ultimaFecha = "";
         sesiones.filter(s => s.estado === 'cerrado').forEach(s => {
             const fechaD = new Date(s.f_inicio + "T00:00:00").toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
             if(fechaD !== ultimaFecha) { div.innerHTML += `<div class="date-header">${fechaD}</div>`; ultimaFecha = fechaD; }
             div.innerHTML += `<div class="log-row">
-                <div><b>${s.nombre}</b> (${s.tipo})<br><small>${s.h_inicio} - ${s.h_fin} (${s.duracion.toFixed(1)}h)</small></div>
-                <div><button onclick="eliminar('${s.id}')" style="border:none; background:none; color:red;">🗑️</button></div>
+                <div><b>${s.nombre}</b>: ${s.duracion.toFixed(1)}h <br><small>${s.h_inicio} - ${s.h_fin} (${s.tipo})</small></div>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-mini" style="background:#eef2ff; color:#6366f1;" onclick="abrirEditor('${s.id}')">Editar</button>
+                    <button class="btn-mini" style="background:#fee2e2; color:red;" onclick="eliminar('${s.id}')">🗑️</button>
+                </div>
             </div>`;
         });
     }
+
+    window.abrirEditor = (id) => {
+        const s = sesiones.find(x => x.id === id);
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-tipo').value = s.tipo;
+        document.getElementById('edit-h-ini').value = s.h_inicio;
+        document.getElementById('edit-h-fin').value = s.h_fin;
+        document.getElementById('edit-modal').style.display = 'flex';
+    };
+
+    window.guardarEdicion = async () => {
+        const id = document.getElementById('edit-id').value;
+        const reg = sesiones.find(x => x.id === id);
+        const h1 = document.getElementById('edit-h-ini').value;
+        const h2 = document.getElementById('edit-h-fin').value;
+        const d1 = new Date(`${reg.f_inicio}T${h1}`);
+        const d2 = new Date(`${reg.f_fin || reg.f_inicio}T${h2}`);
+        const diff = (d2 - d1) / 3600000;
+        await updateDoc(doc(db, "sueno_familiar", id), { 
+            tipo: document.getElementById('edit-tipo').value, 
+            h_inicio: h1, h_fin: h2, duracion: diff 
+        });
+        document.getElementById('edit-modal').style.display = 'none';
+    };
 
     window.eliminar = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "sueno_familiar", id)); };
 
@@ -225,7 +264,6 @@
         });
         const dFeli = labels.map(l => sesiones.filter(s => s.nombre === 'Feli' && s.f_inicio === l).reduce((a, b) => a + b.duracion, 0));
         const dBebe = labels.map(l => sesiones.filter(s => s.nombre === 'Bebé' && s.f_inicio === l).reduce((a, b) => a + b.duracion, 0));
-        
         if(chartInstance) chartInstance.destroy();
         chartInstance = new Chart(ctx, {
             type: 'bar',
