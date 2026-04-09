@@ -23,9 +23,7 @@
         .view.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Banner de Ventana */
         .window-banner { background: #fffbeb; border: 1.5px solid #fef3c7; padding: 15px; border-radius: 18px; margin-bottom: 20px; color: #92400e; font-size: 13px; }
-        
         .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
         .profile-picker { display: flex; gap: 10px; margin-bottom: 20px; }
         .profile-opt { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; font-weight: 700; }
@@ -40,12 +38,10 @@
         .btn-primary { background: var(--primary); color: #fff; }
         .btn-success { background: var(--success); color: #fff; }
 
-        /* Estilos Bitácora */
         .log-row { border-bottom: 1px solid var(--border); padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .date-header { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-top: 15px; }
         .btn-mini { padding: 6px 10px; border-radius: 8px; border: none; font-size: 10px; font-weight: 700; cursor: pointer; }
 
-        /* Modal Edición */
         #edit-modal { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
         .modal-content { background:#fff; border-radius:var(--radius); padding:25px; width:100%; max-width:400px; box-shadow: var(--shadow); }
     </style>
@@ -58,9 +54,9 @@
 </div>
 
 <nav class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('registro')">Registro de Sueño</button>
-    <button class="nav-tab" onclick="switchTab('historial')">Historial de Sueño</button>
-    <button class="nav-tab" onclick="switchTab('analitica')">Análisis de Sueño</button>
+    <button class="nav-tab active" onclick="switchTab('registro')">Registro</button>
+    <button class="nav-tab" onclick="switchTab('historial')">Historial</button>
+    <button class="nav-tab" onclick="switchTab('analitica')">Análisis</button>
 </nav>
 
 <div class="container">
@@ -99,7 +95,10 @@
     </div>
 
     <div id="view-analitica" class="view">
-        <div class="card"><div style="height:300px;"><canvas id="graficoSueno"></canvas></div></div>
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 14px;">Tendencia de Sueño (7 días)</h3>
+            <div style="height:300px;"><canvas id="graficoSueno"></canvas></div>
+        </div>
     </div>
 </div>
 
@@ -167,6 +166,7 @@
             if(data.estado === 'abierto') activa = data;
         });
         actualizarUI();
+        if(document.getElementById('view-analitica').classList.contains('active')) renderChart();
     });
 
     function actualizarUI() {
@@ -262,16 +262,51 @@
             const d = new Date(); d.setDate(d.getDate() - (6-i));
             return d.toISOString().split('T')[0];
         });
-        const dFeli = labels.map(l => sesiones.filter(s => s.nombre === 'Feli' && s.f_inicio === l).reduce((a, b) => a + b.duracion, 0));
-        const dBebe = labels.map(l => sesiones.filter(s => s.nombre === 'Bebé' && s.f_inicio === l).reduce((a, b) => a + b.duracion, 0));
+        
+        const dFeli = labels.map(l => sesiones.filter(s => s.nombre === 'Feli' && s.f_inicio === l).reduce((a, b) => a + (b.duracion || 0), 0));
+        const dBebe = labels.map(l => sesiones.filter(s => s.nombre === 'Bebé' && s.f_inicio === l).reduce((a, b) => a + (b.duracion || 0), 0));
+        
         if(chartInstance) chartInstance.destroy();
+        
         chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: labels.map(l => l.split('-')[2]), datasets: [
-                { label: 'Feli', data: dFeli, backgroundColor: '#6366f1' },
-                { label: 'Bebé', data: dBebe, backgroundColor: '#10b981' }
-            ]},
-            options: { maintainAspectRatio: false }
+            type: 'line',
+            data: { 
+                labels: labels.map(l => l.split('-')[2]), 
+                datasets: [
+                    { 
+                        label: 'Feli', 
+                        data: dFeli, 
+                        borderColor: '#6366f1', 
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#6366f1'
+                    },
+                    { 
+                        label: 'Bebé', 
+                        data: dBebe, 
+                        borderColor: '#10b981', 
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981'
+                    }
+                ]
+            },
+            options: { 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { usePointStyle: true, font: { size: 12, weight: 'bold' } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Horas Totales' }, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
         });
     };
 
@@ -280,7 +315,7 @@
         document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
         document.getElementById('view-'+t).classList.add('active');
         event.currentTarget.classList.add('active');
-        if(t === 'analitica') renderChart();
+        if(t === 'analitica') setTimeout(renderChart, 100);
     };
 
     crearTP('tp_ini'); crearTP('tp_fin');
