@@ -8,49 +8,79 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #6366f1; --night: #312e81; --bg: #f8fafc; --card: #ffffff; 
-            --ink: #0f172a; --muted: #64748b; --border: #e2e8f0; --success: #10b981;
-            --radius: 20px; --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --primary: #6366f1; --secondary: #10b981; --night: #312e81; --bg: #f1f5f9; 
+            --card: #ffffff; --ink: #0f172a; --muted: #64748b; --border: #e2e8f0; 
+            --siesta: #f59e0b; --noche: #4f46e5;
+            --radius: 24px; --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
-        .header { background: var(--night); padding: 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .nav-tabs { display: flex; gap: 8px; background: #fff; padding: 8px; margin: 15px; border-radius: var(--radius); box-shadow: var(--shadow); }
-        .nav-tab { flex: 1; padding: 12px; border: none; border-radius: 14px; background: transparent; font-weight: 700; color: var(--muted); cursor: pointer; font-size: 11px; text-transform: uppercase; }
-        .nav-tab.active { background: var(--ink); color: #fff; }
-        .container { padding: 0 15px 120px; max-width: 900px; margin: 0 auto; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; padding-bottom: 50px; }
+        
+        .header { background: var(--night); padding: 25px 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-radius: 0 0 20px 20px; }
+        .nav-tabs { display: flex; gap: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 8px; margin: 15px; border-radius: var(--radius); box-shadow: var(--shadow); position: sticky; top: 85px; z-index: 90; }
+        .nav-tab { flex: 1; padding: 14px; border: none; border-radius: 18px; background: transparent; font-weight: 700; color: var(--muted); cursor: pointer; font-size: 12px; transition: 0.3s; }
+        .nav-tab.active { background: var(--ink); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        .container { padding: 0 15px 120px; max-width: 600px; margin: 0 auto; }
         .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .view.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .window-banner { background: #fffbeb; border: 1.5px solid #fef3c7; padding: 15px; border-radius: 18px; margin-bottom: 20px; color: #92400e; font-size: 13px; }
-        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.5); }
+        
+        /* ESTILOS DEL HISTORIAL TIPO TIMELINE */
+        .timeline { position: relative; padding-left: 20px; margin-top: 10px; }
+        .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--border); border-radius: 2px; }
+        
+        .date-divider { margin: 30px 0 15px -20px; display: flex; align-items: center; gap: 10px; }
+        .date-pill { background: var(--night); color: white; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; text-transform: capitalize; box-shadow: 0 4px 10px rgba(49, 46, 129, 0.2); }
+        
+        .history-card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 15px; position: relative; box-shadow: var(--shadow); border: 1px solid var(--border); transition: transform 0.2s; }
+        .history-card::before { content: ''; position: absolute; left: -24px; top: 24px; width: 10px; height: 10px; background: white; border: 2px solid var(--primary); border-radius: 50%; z-index: 2; }
+        
+        .hist-grid { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+        .hist-info h4 { font-size: 16px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+        .hist-tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tag-siesta { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+        .tag-nocturno { background: #eef2ff; color: #4338ca; border: 1px solid #e0e7ff; }
+        
+        .hist-time { font-size: 13px; color: var(--muted); margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+        .hist-duration { text-align: right; }
+        .dur-val { font-size: 22px; font-weight: 800; color: var(--night); line-height: 1; }
+        .dur-unit { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+
+        .hist-actions { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+        .action-btn { background: #f8fafc; border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .action-btn:active { transform: scale(0.95); }
+
+        /* PERFIL Y FAB */
         .profile-picker { display: flex; gap: 10px; margin-bottom: 20px; }
-        .profile-opt { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; font-weight: 700; }
-        .profile-opt.active { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+        .profile-opt { flex: 1; padding: 15px; border: 2px solid transparent; background: white; border-radius: 20px; text-align: center; cursor: pointer; font-weight: 700; box-shadow: var(--shadow); transition: 0.3s; }
+        .profile-opt.active { border-color: var(--primary); color: var(--primary); background: #eef2ff; }
         
-        .status-hero { padding: 20px; border-radius: 20px; background: linear-gradient(135deg, #312e81, #6366f1); color: #fff; text-align: center; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { font-size: 11px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px; }
-        input, select { padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; width: 100%; font-size: 15px; }
-        .time-picker { display: flex; gap: 4px; }
-        .btn { padding: 16px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; margin-top: 10px; }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-success { background: var(--success); color: #fff; }
+        .fab { position: fixed; bottom: 30px; right: 25px; width: 64px; height: 64px; background: var(--night); color: white; border-radius: 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(49, 46, 129, 0.3); cursor: pointer; z-index: 200; border: none; font-size: 28px; }
 
-        .log-row { border-bottom: 1px solid var(--border); padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .date-header { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-top: 15px; }
-        .btn-mini { padding: 6px 10px; border-radius: 8px; border: none; font-size: 10px; font-weight: 700; cursor: pointer; }
+        .form-group { margin-bottom: 18px; }
+        label { font-size: 11px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 8px; text-transform: uppercase; }
+        input, select { padding: 14px; border: 1.5px solid var(--border); border-radius: 14px; width: 100%; font-size: 15px; background: #fff; font-family: inherit; }
+        
+        .time-picker { display: flex; gap: 8px; }
+        .time-picker select { flex: 1; text-align: center; }
 
-        #edit-modal { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px; }
-        .modal-content { background:#fff; border-radius:var(--radius); padding:25px; width:100%; max-width:400px; box-shadow: var(--shadow); }
+        .btn { padding: 18px; border: none; border-radius: 18px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .btn-success { background: var(--secondary); color: #fff; }
+        .btn-ghost { background: transparent; color: var(--muted); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="font-weight: 800;">FeliDream 🕊️</div>
-    <div id="reloj" style="font-size: 12px; font-family: monospace;"></div>
+    <div>
+        <div style="font-weight: 800; font-size: 20px; letter-spacing: -0.5px;">FeliDream 🕊️</div>
+        <div id="reloj" style="font-size: 12px; opacity: 0.7; font-family: monospace;"></div>
+    </div>
+    <div style="background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 12px; font-size: 12px;">PWA v2.5</div>
 </div>
 
 <nav class="nav-tabs">
@@ -59,58 +89,61 @@
     <button class="nav-tab" onclick="switchTab('analitica')">Análisis</button>
 </nav>
 
+<button class="fab" id="fab-manual" onclick="toggleManual()">⏳</button>
+
 <div class="container">
     <div id="view-registro" class="view active">
-        <div id="ventana-display" class="window-banner" style="display:none;">
-            💡 Próxima ventana de <b id="win-name"></b>: <b id="win-time">--:--</b>
-        </div>
-
         <div class="profile-picker">
-            <div class="profile-opt active" id="p-feli" onclick="setProfile('Feli', 330)">👦 Feli</div>
-            <div class="profile-opt" id="p-bebe" onclick="setProfile('Bebé', 60)">👶 Bebé</div>
+            <div class="profile-opt active" id="p-feli" onclick="setProfile('Feli')">👦 Feli</div>
+            <div class="profile-opt" id="p-bebe" onclick="setProfile('Bebé')">👶 Bebé</div>
         </div>
 
-        <div class="card">
+        <div class="card" id="card-realtime">
             <div id="panel-inicio">
-                <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="reg_tipo"><option value="Siesta">Siesta 🌤️</option><option value="Nocturno">Noche 🌙</option></select>
-                </div>
-                <div class="form-group"><label>Fecha</label><input type="date" id="reg_f_ini"></div>
-                <div class="form-group"><label>Hora de Inicio</label><div class="time-picker" id="tp_ini"></div></div>
-                <button onclick="registrarInicio()" class="btn btn-primary" id="btn-label-ini">Iniciar Sueño</button>
+                <div class="form-group"><label>Modo de Sueño</label><select id="reg_tipo"><option value="Siesta">Siesta Diurna 🌤️</option><option value="Nocturno">Sueño Nocturno 🌙</option></select></div>
+                <div class="form-group"><label>Día</label><input type="date" id="reg_f_ini"></div>
+                <div class="form-group"><label>Hora de inicio</label><div class="time-picker" id="tp_ini"></div></div>
+                <button onclick="registrarInicio()" class="btn btn-primary">Empezar a dormir</button>
             </div>
-
             <div id="panel-fin" style="display:none;">
-                <div class="status-hero"><div id="msg-activo" style="font-size:18px; font-weight:700;"></div></div>
-                <div class="form-group"><label>Fecha Despertar</label><input type="date" id="reg_f_fin"></div>
-                <div class="form-group"><label>Hora Despertar</label><div class="time-picker" id="tp_fin"></div></div>
+                <div id="msg-activo" style="padding:25px; background: linear-gradient(135deg, var(--night), var(--primary)); color:#fff; border-radius:20px; text-align:center; margin-bottom:20px; font-weight:700; font-size:18px;"></div>
+                <div class="form-group"><label>Día de despertar</label><input type="date" id="reg_f_fin"></div>
+                <div class="form-group"><label>Hora de despertar</label><div class="time-picker" id="tp_fin"></div></div>
                 <button onclick="registrarFin()" class="btn btn-success">¡Ya despertó!</button>
             </div>
+        </div>
+
+        <div class="card" id="panel-manual" style="display:none; border: 2px solid var(--primary);">
+            <h3 style="margin-bottom:20px; color: var(--primary);">Registro Manual</h3>
+            <div class="form-group"><label>Tipo</label><select id="man_tipo"><option value="Siesta">Siesta</option><option value="Nocturno">Nocturno</option></select></div>
+            <div class="form-group"><label>Inicio</label><input type="date" id="man_f_ini" style="margin-bottom:8px;"><div class="time-picker" id="tp_man_ini"></div></div>
+            <div class="form-group"><label>Fin</label><input type="date" id="man_f_fin" style="margin-bottom:8px;"><div class="time-picker" id="tp_man_fin"></div></div>
+            <button onclick="registrarManual()" class="btn btn-primary">Guardar Olvido</button>
+            <button onclick="toggleManual()" class="btn btn-ghost" style="margin-top:10px;">Cerrar</button>
         </div>
     </div>
 
     <div id="view-historial" class="view">
-        <div class="card"><div id="listaHistorial"></div></div>
+        <div class="timeline" id="listaHistorial"></div>
     </div>
 
     <div id="view-analitica" class="view">
         <div class="card">
-            <h3 style="margin-bottom: 15px; font-size: 14px;">Tendencia de Sueño (7 días)</h3>
-            <div style="height:300px;"><canvas id="graficoSueno"></canvas></div>
+            <h3 style="margin-bottom:25px; font-size: 16px; font-weight: 800; color: var(--night);">Comparativa Semanal</h3>
+            <div style="height:350px;"><canvas id="graficoSueno"></canvas></div>
         </div>
     </div>
 </div>
 
-<div id="edit-modal">
-    <div class="modal-content">
-        <h3 style="margin-bottom:15px;">Editar Registro</h3>
+<div id="edit-modal" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.8); z-index:1000; align-items:center; justify-content:center; padding:20px; backdrop-filter: blur(5px);">
+    <div style="background:#fff; border-radius:28px; padding:30px; width:100%; max-width:400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <h3 style="font-weight:800; margin-bottom:20px;">Editar Registro</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>Tipo</label><select id="edit-tipo"><option value="Siesta">Siesta</option><option value="Nocturno">Noche</option></select></div>
-        <div class="form-group"><label>Hora Inicio (24h)</label><input type="time" id="edit-h-ini"></div>
-        <div class="form-group"><label>Hora Fin (24h)</label><input type="time" id="edit-h-fin"></div>
+        <div class="form-group"><label>Tipo</label><select id="edit-tipo"><option value="Siesta">Siesta</option><option value="Nocturno">Nocturno</option></select></div>
+        <div class="form-group"><label>Inicio</label><input type="date" id="edit-f-ini"><input type="time" id="edit-h-ini" style="margin-top:8px"></div>
+        <div class="form-group"><label>Fin</label><input type="date" id="edit-f-fin"><input type="time" id="edit-h-fin" style="margin-top:8px"></div>
         <button onclick="guardarEdicion()" class="btn btn-primary">Guardar Cambios</button>
-        <button onclick="document.getElementById('edit-modal').style.display='none'" class="btn" style="background:#eee;">Cancelar</button>
+        <button onclick="document.getElementById('edit-modal').style.display='none'" class="btn btn-ghost" style="margin-top:10px;">Cancelar</button>
     </div>
 </div>
 
@@ -134,7 +167,6 @@
     let sesiones = [];
     let activa = null;
     let currentChild = "Feli";
-    let currentWindow = 330;
     let chartInstance = null;
 
     const crearTP = (id) => {
@@ -144,18 +176,9 @@
     };
 
     const getH24 = (id) => {
-        let h = parseInt(document.getElementById(`${id}_h`).value);
-        let m = document.getElementById(`${id}_m`).value;
-        let p = document.getElementById(`${id}_p`).value;
+        let h = parseInt(document.getElementById(`${id}_h`).value), m = document.getElementById(`${id}_m`).value, p = document.getElementById(`${id}_p`).value;
         if(p === 'PM' && h < 12) h += 12; else if(p === 'AM' && h === 12) h = 0;
         return `${h.toString().padStart(2,'0')}:${m}`;
-    };
-
-    window.setProfile = (name, mins) => {
-        currentChild = name; currentWindow = mins;
-        document.querySelectorAll('.profile-opt').forEach(el => el.classList.remove('active'));
-        document.getElementById(name === 'Feli' ? 'p-feli' : 'p-bebe').classList.add('active');
-        actualizarUI();
     };
 
     onSnapshot(query(colRef, orderBy("timestamp", "desc")), (snap) => {
@@ -166,74 +189,100 @@
             if(data.estado === 'abierto') activa = data;
         });
         actualizarUI();
-        if(document.getElementById('view-analitica').classList.contains('active')) renderChart();
     });
 
     function actualizarUI() {
-        const pIni = document.getElementById('panel-inicio');
-        const pFin = document.getElementById('panel-fin');
-        const vDisp = document.getElementById('ventana-display');
-        
-        document.getElementById('btn-label-ini').innerText = `${currentChild} empezó a dormir`;
-
+        const hoy = new Date().toISOString().split('T')[0];
         if(activa) {
-            pIni.style.display = "none"; pFin.style.display = "block"; vDisp.style.display = "none";
-            document.getElementById('msg-activo').innerText = `${activa.nombre} está durmiendo`;
-            document.getElementById('reg_f_fin').value = new Date().toISOString().split('T')[0];
+            document.getElementById('panel-inicio').style.display = "none";
+            document.getElementById('panel-fin').style.display = "block";
+            document.getElementById('msg-activo').innerText = `${activa.nombre} está descansando...`;
+            document.getElementById('reg_f_fin').value = hoy;
         } else {
-            pIni.style.display = "block"; pFin.style.display = "none";
-            document.getElementById('reg_f_ini').value = new Date().toISOString().split('T')[0];
-            
-            const ultimo = sesiones.find(s => s.nombre === currentChild && s.estado === 'cerrado');
-            if(ultimo) {
-                vDisp.style.display = "block";
-                document.getElementById('win-name').innerText = currentChild;
-                let [h, m] = ultimo.h_fin.split(':');
-                let d = new Date(); d.setHours(h); d.setMinutes(m);
-                d.setMinutes(d.getMinutes() + currentWindow);
-                document.getElementById('win-time').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            }
+            document.getElementById('panel-inicio').style.display = "block";
+            document.getElementById('panel-fin').style.display = "none";
+            document.getElementById('reg_f_ini').value = hoy;
         }
         renderHistorial();
+        if(document.getElementById('view-analitica').classList.contains('active')) renderChart();
     }
 
     window.registrarInicio = async () => {
-        await addDoc(colRef, { 
-            nombre: currentChild, tipo: document.getElementById('reg_tipo').value, 
-            f_inicio: document.getElementById('reg_f_ini').value, h_inicio: getH24('tp_ini'), 
-            estado: 'abierto', timestamp: new Date() 
-        });
+        await addDoc(colRef, { nombre: currentChild, tipo: document.getElementById('reg_tipo').value, f_inicio: document.getElementById('reg_f_ini').value, h_inicio: getH24('tp_ini'), estado: 'abierto', timestamp: new Date() });
     };
 
     window.registrarFin = async () => {
-        const f2 = document.getElementById('reg_f_fin').value;
-        const h2 = getH24('tp_fin');
-        const d1 = new Date(`${activa.f_inicio}T${activa.h_inicio}`);
-        const d2 = new Date(`${f2}T${h2}`);
-        const diff = (d2 - d1) / 3600000;
-        await updateDoc(doc(db, "sueno_familiar", activa.id), { f_fin: f2, h_fin: h2, duracion: diff, estado: 'cerrado' });
+        const f2 = document.getElementById('reg_f_fin').value, h2 = getH24('tp_fin');
+        const dur = (new Date(`${f2}T${h2}`) - new Date(`${activa.f_inicio}T${activa.h_inicio}`)) / 3600000;
+        if(dur <= 0) return alert("Error en horas");
+        await updateDoc(doc(db, "sueno_familiar", activa.id), { f_fin: f2, h_fin: h2, duracion: dur, estado: 'cerrado' });
     };
 
-    function renderHistorial() {
-        const div = document.getElementById('listaHistorial'); div.innerHTML = "";
-        let ultimaFecha = "";
+    window.renderHistorial = () => {
+        const container = document.getElementById('listaHistorial');
+        container.innerHTML = "";
+        let uFecha = "";
+        
         sesiones.filter(s => s.estado === 'cerrado').forEach(s => {
-            const fechaD = new Date(s.f_inicio + "T00:00:00").toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
-            if(fechaD !== ultimaFecha) { div.innerHTML += `<div class="date-header">${fechaD}</div>`; ultimaFecha = fechaD; }
-            div.innerHTML += `<div class="log-row">
-                <div><b>${s.nombre}</b>: ${s.duracion.toFixed(1)}h <br><small>${s.h_inicio} - ${s.h_fin} (${s.tipo})</small></div>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-mini" style="background:#eef2ff; color:#6366f1;" onclick="abrirEditor('${s.id}')">Editar</button>
-                    <button class="btn-mini" style="background:#fee2e2; color:red;" onclick="eliminar('${s.id}')">🗑️</button>
+            if(s.f_inicio !== uFecha) {
+                const dateObj = new Date(s.f_inicio + "T00:00:00");
+                const formattedDate = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                const div = document.createElement('div');
+                div.className = 'date-divider';
+                div.innerHTML = `<div class="date-pill">${formattedDate}</div>`;
+                container.appendChild(div);
+                uFecha = s.f_inicio;
+            }
+            
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="hist-grid">
+                    <div class="hist-info">
+                        <h4>${s.nombre} <span class="hist-tag ${s.tipo === 'Siesta' ? 'tag-siesta' : 'tag-nocturno'}">${s.tipo}</span></h4>
+                        <div class="hist-time">🕒 ${s.h_inicio} - ${s.h_fin}</div>
+                    </div>
+                    <div class="hist-duration">
+                        <div class="dur-val">${s.duracion.toFixed(1)}</div>
+                        <div class="dur-unit">Horas</div>
+                    </div>
                 </div>
-            </div>`;
+                <div class="hist-actions">
+                    <button class="action-btn" onclick="abrirEditor('${s.id}')">✏️ Editar</button>
+                    <button class="action-btn" style="color:var(--danger)" onclick="eliminarRegistro('${s.id}')">🗑️</button>
+                </div>`;
+            container.appendChild(card);
         });
-    }
+    };
+
+    window.renderChart = () => {
+        const ctx = document.getElementById('graficoSueno').getContext('2d');
+        const labels = [];
+        for(let i=6; i>=0; i--) {
+            const d = new Date(); d.setDate(d.getDate()-i);
+            labels.push(d.toISOString().split('T')[0]);
+        }
+        const getData = (name) => labels.map(l => sesiones.filter(s => s.nombre === name && s.f_inicio === l && s.estado === 'cerrado').reduce((a, b) => a + b.duracion, 0));
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels.map(l => new Date(l + "T00:00:00").toLocaleDateString('es-ES', {day: '2-digit', month: 'short'})),
+                datasets: [
+                    { label: 'Feli', data: getData('Feli'), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 },
+                    { label: 'Bebé', data: getData('Bebé'), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    };
 
     window.abrirEditor = (id) => {
         const s = sesiones.find(x => x.id === id);
         document.getElementById('edit-id').value = id;
         document.getElementById('edit-tipo').value = s.tipo;
+        document.getElementById('edit-f-ini').value = s.f_inicio;
+        document.getElementById('edit-f-fin').value = s.f_fin;
         document.getElementById('edit-h-ini').value = s.h_inicio;
         document.getElementById('edit-h-fin').value = s.h_fin;
         document.getElementById('edit-modal').style.display = 'flex';
@@ -241,84 +290,31 @@
 
     window.guardarEdicion = async () => {
         const id = document.getElementById('edit-id').value;
-        const reg = sesiones.find(x => x.id === id);
-        const h1 = document.getElementById('edit-h-ini').value;
-        const h2 = document.getElementById('edit-h-fin').value;
-        const d1 = new Date(`${reg.f_inicio}T${h1}`);
-        const d2 = new Date(`${reg.f_fin || reg.f_inicio}T${h2}`);
-        const diff = (d2 - d1) / 3600000;
-        await updateDoc(doc(db, "sueno_familiar", id), { 
-            tipo: document.getElementById('edit-tipo').value, 
-            h_inicio: h1, h_fin: h2, duracion: diff 
-        });
+        const fi = document.getElementById('edit-f-ini').value, ff = document.getElementById('edit-f-fin').value;
+        const h1 = document.getElementById('edit-h-ini').value, h2 = document.getElementById('edit-h-fin').value;
+        const dur = (new Date(`${ff}T${h2}`) - new Date(`${fi}T${h1}`)) / 3600000;
+        await updateDoc(doc(db, "sueno_familiar", id), { f_inicio: fi, f_fin: ff, h_inicio: h1, h_fin: h2, duracion: dur, tipo: document.getElementById('edit-tipo').value });
         document.getElementById('edit-modal').style.display = 'none';
     };
 
-    window.eliminar = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "sueno_familiar", id)); };
-
-    window.renderChart = () => {
-        const ctx = document.getElementById('graficoSueno').getContext('2d');
-        const labels = [...Array(7)].map((_, i) => {
-            const d = new Date(); d.setDate(d.getDate() - (6-i));
-            return d.toISOString().split('T')[0];
-        });
-        
-        const dFeli = labels.map(l => sesiones.filter(s => s.nombre === 'Feli' && s.f_inicio === l).reduce((a, b) => a + (b.duracion || 0), 0));
-        const dBebe = labels.map(l => sesiones.filter(s => s.nombre === 'Bebé' && s.f_inicio === l).reduce((a, b) => a + (b.duracion || 0), 0));
-        
-        if(chartInstance) chartInstance.destroy();
-        
-        chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { 
-                labels: labels.map(l => l.split('-')[2]), 
-                datasets: [
-                    { 
-                        label: 'Feli', 
-                        data: dFeli, 
-                        borderColor: '#6366f1', 
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#6366f1'
-                    },
-                    { 
-                        label: 'Bebé', 
-                        data: dBebe, 
-                        borderColor: '#10b981', 
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#10b981'
-                    }
-                ]
-            },
-            options: { 
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top', labels: { usePointStyle: true, font: { size: 12, weight: 'bold' } } }
-                },
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'Horas Totales' }, grid: { color: '#f1f5f9' } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
+    window.eliminarRegistro = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "sueno_familiar", id)); };
+    window.toggleManual = () => {
+        const m = document.getElementById('panel-manual'), r = document.getElementById('card-realtime');
+        m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        r.style.display = m.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('man_f_ini').value = document.getElementById('man_f_fin').value = new Date().toISOString().split('T')[0];
     };
-
+    window.setProfile = (n) => { currentChild = n; document.querySelectorAll('.profile-opt').forEach(o => o.classList.toggle('active', o.innerText.includes(n))); };
     window.switchTab = (t) => {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
         document.getElementById('view-'+t).classList.add('active');
         event.currentTarget.classList.add('active');
+        document.getElementById('fab-manual').style.display = (t === 'registro') ? 'flex' : 'none';
         if(t === 'analitica') setTimeout(renderChart, 100);
     };
 
-    crearTP('tp_ini'); crearTP('tp_fin');
+    crearTP('tp_ini'); crearTP('tp_fin'); crearTP('tp_man_ini'); crearTP('tp_man_fin');
     setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
 </body>
